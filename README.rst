@@ -5,9 +5,9 @@ ONVIF Client Implementation in Python
 
 Dependencies
 ------------
-`suds <https://pypi.python.org/pypi/suds>`_ >= 0.4
+`suds-py3 <https://pypi.python.org/pypi/suds-p3>`_
 
-`suds-passworddigest <https://pypi.python.org/pypi/suds_passworddigest>`_
+`suds-passworddigest-py <http://github.com/tgaugry/suds-passworddigest-py3>`_
 
 Install python-onvif
 --------------------
@@ -21,7 +21,7 @@ You should clone this repository and run setup.py::
 
 ::
 
-    pip install onvif
+    pip install onvif-py3
 
 Getting Started
 ---------------
