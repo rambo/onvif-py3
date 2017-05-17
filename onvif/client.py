@@ -1,7 +1,6 @@
 __version__ = '0.0.1'
 
 import os.path
-from types import InstanceType
 import urllib.parse
 import urllib.request, urllib.parse, urllib.error
 from threading import Thread, RLock
@@ -20,7 +19,6 @@ binding.envns = ('SOAP-ENV', 'http://www.w3.org/2003/05/soap-envelope')
 
 from onvif.exceptions import ONVIFError
 from .definition import SERVICES, NSMAP
-from suds.sax.date import UTC
 import datetime as dt
 # Ensure methods to raise an ONVIFError Exception
 # when some thing was wrong
@@ -50,7 +48,7 @@ class UsernameDigestTokenDtDiff(UsernameDigestToken):
         if self.dt_diff :
             dt_adjusted = (self.dt_diff + dt.datetime.utcnow())
         UsernameToken.setcreated(self, dt=dt_adjusted, *args, **kwargs)
-        self.created = str(UTC(self.created))
+        self.created = self.created.isoformat()
 
 
 class ONVIFService(object):
@@ -162,6 +160,7 @@ class ONVIFService(object):
     @staticmethod
     @safe_func
     def to_dict(sudsobject):
+        #print("to_dict got {} (of type {})".format(repr(sudsobject), type(sudsobject)))
         # Convert a WSDL Type instance into a dictionary
         if sudsobject is None:
             return { }
@@ -179,7 +178,9 @@ class ONVIFService(object):
                 # No params
                 if params is None:
                     params = {}
-                elif isinstance(params, InstanceType):
+                elif isinstance(params, dict):
+                    pass
+                else:
                     params = ONVIFService.to_dict(params)
                 ret = func(**params)
                 if callable(callback):
@@ -234,9 +235,11 @@ class ONVIFCamera(object):
                          'imaging': None, 'events': None, 'analytics': None }
     use_services_template = {'devicemgmt': True, 'ptz': True, 'media': True,
                          'imaging': True, 'events': True, 'analytics': True }
-    def __init__(self, host, port ,user, passwd, wsdl_dir=os.path.join(os.path.dirname(os.path.dirname(__file__)), "wsdl"),
+    def __init__(self, host, port ,user, passwd, wsdl_dir=None,
                  cache_location=None, cache_duration=None,
                  encrypt=True, daemon=False, no_cache=False, adjust_time=False):
+        if not wsdl_dir:
+            wsdl_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "wsdl")
         self.host = host
         self.port = int(port)
         self.user = user
@@ -363,7 +366,8 @@ class ONVIFCamera(object):
         with self.services_lock:
             svt = self.services_template.get(name)
             # Has a template, clone from it. Faster.
-            if svt and from_template and self.use_services_template.get(name):
+            # This causes infinite recursion for some reason
+            if False and svt and from_template and self.use_services_template.get(name):
                 service = ONVIFService.clone(svt, xaddr, self.user,
                                              self.passwd, wsdl_file,
                                              self.cache_location,
