@@ -1,13 +1,13 @@
-python-onvif
-============
+onvif-py3
+==========
 
-ONVIF Client Implementation in Python
+Python 3 fork of python-onvif: ONVIF Client Implementation in Python
 
 Dependencies
 ------------
 `suds-py3 <https://pypi.python.org/pypi/suds-p3>`_
 
-`suds-passworddigest-py <http://github.com/tgaugry/suds-passworddigest-py3>`_
+`suds-passworddigest-py3 <http://github.com/tgaugry/suds-passworddigest-py3>`_
 
 Install python-onvif
 --------------------
@@ -15,7 +15,11 @@ Install python-onvif
 
 You should clone this repository and run setup.py::
 
-    cd python-onvif && python setup.py install
+    cd onvif-py3 && pip install .
+
+Or if you want to make changes
+
+    cd onvif-py3 && pip install -e .
 
 **From PyPI**
 
