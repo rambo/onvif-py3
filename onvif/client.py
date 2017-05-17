@@ -246,7 +246,7 @@ class ONVIFCamera(object):
                  cache_location=None, cache_duration=None,
                  encrypt=True, daemon=False, no_cache=False, adjust_time=False):
         if not wsdl_dir:
-            wsdl_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "wsdl")
+            wsdl_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "wsdl")
         self.host = host
         self.port = int(port)
         self.user = user

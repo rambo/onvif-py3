@@ -26,8 +26,6 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3",
 ]
 
-wsdl_files = [ os.path.join('wsdl', item) for item in os.listdir('wsdl') ]
-
 setup(
       name='onvif-py3',
       version=version,
@@ -41,11 +39,14 @@ setup(
       keywords=['ONVIF', 'Camera', 'IPC'],
       url='http://github.com/rambo/python-onvif',
       zip_safe=False,
-      packages=['onvif'],
+      packages=['onvif', 'onvif.wsdl'],
       install_requires=['suds-py3'],
       dependency_links=['http://github.com/tgaugry/suds-passworddigest-py3/tarball/master#egg=suds-passworddigest-0.1.2a'],
-      include_package_data=True,
-      data_files=[('wsdl', wsdl_files)],
+      package_data={
+          '': ['*.txt', '*.rst'],
+          'onvif': ['*.wsdl', '*.xsd', '*xml*', 'envelope', 'include', 'addressing'],
+          'onvif.wsdl': ['*.wsdl', '*.xsd', '*xml*', 'envelope', 'include', 'addressing'],
+      },
       entry_points={
           'console_scripts': ['onvif-cli = onvif.cli:main']
           }
