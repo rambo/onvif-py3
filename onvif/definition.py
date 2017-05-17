@@ -16,5 +16,5 @@ SERVICES = {
 
 
 NSMAP = { }
-for name, item in SERVICES.items():
+for name, item in list(SERVICES.items()):
     NSMAP[item['ns']] = name

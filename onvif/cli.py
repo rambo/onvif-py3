@@ -10,10 +10,10 @@ from argparse import ArgumentParser, ArgumentError, REMAINDER
 from suds import MethodNotFound
 from suds.sax.text import Text
 from onvif import ONVIFCamera, ONVIFService, ONVIFError
-from definition import SERVICES
+from .definition import SERVICES
 import os.path
 
-SUPPORTED_SERVICES = SERVICES.keys()
+SUPPORTED_SERVICES = list(SERVICES.keys())
 
 class ThrowingArgumentParser(ArgumentParser):
     def error(self, message):
@@ -21,10 +21,10 @@ class ThrowingArgumentParser(ArgumentParser):
         raise ValueError("%s\n%s" % (message, usage))
 
 def success(message):
-    print 'True: ' + str(message)
+    print('True: ' + str(message))
 
 def error(message):
-    print 'False: ' + str(message)
+    print('False: ' + str(message))
 
 class ONVIFCLI(Cmd):
     prompt = 'ONVIF >>> '
@@ -151,7 +151,7 @@ def main():
     try:
         args = parser.parse_args()
     except ValueError as err:
-        print str(err)
+        print(str(err))
         return
     # Also need parse configuration file.
 

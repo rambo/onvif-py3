@@ -2,8 +2,8 @@ __version__ = '0.0.1'
 
 import os.path
 from types import InstanceType
-import urlparse
-import urllib
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
 from threading import Thread, RLock
 
 import logging
@@ -19,7 +19,7 @@ from suds.bindings import binding
 binding.envns = ('SOAP-ENV', 'http://www.w3.org/2003/05/soap-envelope')
 
 from onvif.exceptions import ONVIFError
-from definition import SERVICES, NSMAP
+from .definition import SERVICES, NSMAP
 from suds.sax.date import UTC
 import datetime as dt
 # Ensure methods to raise an ONVIFError Exception
@@ -105,7 +105,7 @@ class ONVIFService(object):
 
 
         # Convert pathname to url
-        self.url = urlparse.urljoin('file:', urllib.pathname2url(url))
+        self.url = urllib.parse.urljoin('file:', urllib.request.pathname2url(url))
         self.xaddr = xaddr
         # Create soap client
         if not ws_client:
@@ -303,7 +303,7 @@ class ONVIFCamera(object):
         self.capabilities = self.devicemgmt.GetCapabilities()
 
         with self.services_lock:
-            for sname in self.services.keys():
+            for sname in list(self.services.keys()):
                 xaddr = getattr(self.capabilities, sname.capitalize).XAddr
                 self.services[sname].ws_client.set_options(location=xaddr)
 
@@ -320,7 +320,7 @@ class ONVIFCamera(object):
             return
 
         with self.services_lock:
-            for service in self.services.keys():
+            for service in list(self.services.keys()):
                 self.services[service].set_wsse(user, passwd)
 
     def get_service(self, name, create=True):
