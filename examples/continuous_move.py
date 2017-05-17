@@ -7,6 +7,7 @@ XMIN = -1
 YMAX = 1
 YMIN = -1
 
+
 def perform_move(ptz, request, timeout):
     # Start continuous move
     ptz.ContinuousMove(request)
@@ -15,29 +16,34 @@ def perform_move(ptz, request, timeout):
     # Stop continuous move
     ptz.Stop({'ProfileToken': request.ProfileToken})
 
+
 def move_up(ptz, request, timeout=1):
-    print 'move up...'
+    print('move up...')
     request.Velocity.PanTilt._x = 0
     request.Velocity.PanTilt._y = YMAX
     perform_move(ptz, request, timeout)
 
+
 def move_down(ptz, request, timeout=1):
-    print 'move down...'
+    print('move down...')
     request.Velocity.PanTilt._x = 0
     request.Velocity.PanTilt._y = YMIN
     perform_move(ptz, request, timeout)
 
+
 def move_right(ptz, request, timeout=1):
-    print 'move right...'
+    print('move right...')
     request.Velocity.PanTilt._x = XMAX
     request.Velocity.PanTilt._y = 0
     perform_move(ptz, request, timeout)
 
+
 def move_left(ptz, request, timeout=1):
-    print 'move left...'
+    print('move left...')
     request.Velocity.PanTilt._x = XMIN
     request.Velocity.PanTilt._y = 0
     perform_move(ptz, request, timeout)
+
 
 def continuous_move():
     mycam = ONVIFCamera('192.168.0.112', 80, 'admin', '12345')
@@ -47,7 +53,7 @@ def continuous_move():
     ptz = mycam.create_ptz_service()
 
     # Get target profile
-    media_profile = media.GetProfiles()[0];
+    media_profile = media.GetProfiles()[0]
 
     # Get PTZ configuration options for getting continuous move range
     request = ptz.create_type('GetConfigurationOptions')

@@ -1,5 +1,6 @@
 from onvif import ONVIFCamera
 
+
 def media_profile_configuration():
     '''
     A media profile consists of configuration entities such as video/audio
@@ -24,26 +25,26 @@ def media_profile_configuration():
     video_encoder_configuration = configurations_list[0]
 
     # Get video encoder configuration options
-    options = media_service.GetVideoEncoderConfigurationOptions({'ProfileToken':token})
+    options = media_service.GetVideoEncoderConfigurationOptions({'ProfileToken': token})
 
     # Setup stream configuration
     video_encoder_configuration.Encoding = 'H264'
     # Setup Resolution
     video_encoder_configuration.Resolution.Width = \
-                    options.H264.ResolutionsAvailable[0].Width
+        options.H264.ResolutionsAvailable[0].Width
     video_encoder_configuration.Resolution.Height = \
-                    options.H264.ResolutionsAvailable[0].Height
+        options.H264.ResolutionsAvailable[0].Height
     # Setup Quality
     video_encoder_configuration.Quality = options.QualityRange.Min
     # Setup FramRate
     video_encoder_configuration.RateControl.FrameRateLimit = \
-                                    options.H264.FrameRateRange.Min
+        options.H264.FrameRateRange.Min
     # Setup EncodingInterval
     video_encoder_configuration.RateControl.EncodingInterval = \
-                                    options.H264.EncodingIntervalRange.Min
+        options.H264.EncodingIntervalRange.Min
     # Setup Bitrate
     video_encoder_configuration.RateControl.BitrateLimit = \
-                            options.Extension.H264[0].BitrateRange[0].Min[0]
+        options.Extension.H264[0].BitrateRange[0].Min[0]
 
     # Create request type instance
     request = media_service.create_type('SetVideoEncoderConfiguration')
