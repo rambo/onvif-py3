@@ -1,27 +1,33 @@
 __version__ = '0.0.1'
 
-import os.path
-import urllib.parse
-import urllib.request, urllib.parse, urllib.error
-from threading import Thread, RLock
-
+import datetime as dt
 import logging
+import os.path
+import urllib.error
+import urllib.parse
+import urllib.request
+from threading import RLock, Thread
+
+from suds.bindings import binding
+from suds.cache import NoCache, ObjectCache
+from suds.client import Client
+from suds.wsse import Security, UsernameToken
+from suds_passworddigest.token import UsernameDigestToken
+
+from onvif.exceptions import ONVIFError
+
+from .definition import NSMAP, SERVICES
+
 logger = logging.getLogger('onvif')
 logging.basicConfig(level=logging.INFO)
 logging.getLogger('suds.client').setLevel(logging.CRITICAL)
 
-from suds.client import Client
-from suds.wsse import Security, UsernameToken
-from suds.cache import ObjectCache, NoCache
-from suds_passworddigest.token import UsernameDigestToken
-from suds.bindings import binding
 binding.envns = ('SOAP-ENV', 'http://www.w3.org/2003/05/soap-envelope')
 
-from onvif.exceptions import ONVIFError
-from .definition import SERVICES, NSMAP
-import datetime as dt
 # Ensure methods to raise an ONVIFError Exception
 # when some thing was wrong
+
+
 def safe_func(func):
     def wrapped(*args, **kwargs):
         try:
@@ -38,14 +44,15 @@ class UsernameDigestTokenDtDiff(UsernameDigestToken):
     Please note that using NTP on both end is the recommended solution, 
     this should only be used in "safe" environements.
     '''
-    def __init__(self, user, passw, dt_diff=None) :
-#        Old Style class ... sigh ...
+
+    def __init__(self, user, passw, dt_diff=None):
+        #        Old Style class ... sigh ...
         UsernameDigestToken.__init__(self, user, passw)
         self.dt_diff = dt_diff
-        
+
     def setcreated(self, *args, **kwargs):
         dt_adjusted = None
-        if self.dt_diff :
+        if self.dt_diff:
             dt_adjusted = (self.dt_diff + dt.datetime.utcnow())
         UsernameToken.setcreated(self, dt=dt_adjusted, *args, **kwargs)
         self.created = self.created.isoformat()
@@ -85,7 +92,7 @@ class ONVIFService(object):
     @safe_func
     def __init__(self, xaddr, user, passwd, url,
                  cache_location='/tmp/suds', cache_duration=None,
-                 encrypt=True, daemon=False, ws_client=None, no_cache=False, portType=None, dt_diff = None):
+                 encrypt=True, daemon=False, ws_client=None, no_cache=False, portType=None, dt_diff=None):
 
         if not os.path.isfile(url):
             raise ONVIFError('%s doesn`t exist!' % url)
@@ -100,7 +107,6 @@ class ONVIFService(object):
             # cache_duration: cache will expire in `cache_duration` days
             if cache_duration is not None:
                 cache.setduration(days=cache_duration)
-
 
         # Convert pathname to url
         self.url = urllib.parse.urljoin('file:', urllib.request.pathname2url(url))
@@ -163,9 +169,9 @@ class ONVIFService(object):
         #print("to_dict got {} (of type {})".format(repr(sudsobject), type(sudsobject)))
         # Convert a WSDL Type instance into a dictionary
         if sudsobject is None:
-            return { }
+            return {}
         elif isinstance(sudsobject, list):
-            ret = [ ]
+            ret = []
             for item in sudsobject:
                 ret.append(Client.dict(item))
             return ret
@@ -195,7 +201,6 @@ class ONVIFService(object):
                 return call(params, callback)
         return wrapped
 
-
     def __getattr__(self, name):
         '''
         Call the real onvif Service operations,
@@ -203,17 +208,18 @@ class ONVIFService(object):
         APIs detail(API name, request parameters,
         response parameters, parameter types, etc...)
         '''
-        builtin =  name.startswith('__') and name.endswith('__')
+        builtin = name.startswith('__') and name.endswith('__')
         if builtin:
             return self.__dict__[name]
         else:
             return self.service_wrapper(getattr(self.ws_client.service, name))
 
+
 class ONVIFCamera(object):
     '''
     Python Implemention ONVIF compliant device
     This class integrates onvif services
-				
+
     adjust_time parameter allows authentication on cameras without being time synchronized.
     Please note that using NTP on both end is the recommended solution, 
     this should only be used in "safe" environements.
@@ -232,10 +238,11 @@ class ONVIFCamera(object):
 
     # Class-level variables
     services_template = {'devicemgmt': None, 'ptz': None, 'media': None,
-                         'imaging': None, 'events': None, 'analytics': None }
+                         'imaging': None, 'events': None, 'analytics': None}
     use_services_template = {'devicemgmt': True, 'ptz': True, 'media': True,
-                         'imaging': True, 'events': True, 'analytics': True }
-    def __init__(self, host, port ,user, passwd, wsdl_dir=None,
+                             'imaging': True, 'events': True, 'analytics': True}
+
+    def __init__(self, host, port, user, passwd, wsdl_dir=None,
                  cache_location=None, cache_duration=None,
                  encrypt=True, daemon=False, no_cache=False, adjust_time=False):
         if not wsdl_dir:
@@ -253,7 +260,7 @@ class ONVIFCamera(object):
         self.adjust_time = adjust_time
 
         # Active service client container
-        self.services = { }
+        self.services = {}
         self.services_lock = RLock()
 
         # Set xaddrs
@@ -264,15 +271,15 @@ class ONVIFCamera(object):
     def update_xaddrs(self):
         # Establish devicemgmt service first
         self.dt_diff = None
-        self.devicemgmt  = self.create_devicemgmt_service()
-        if self.adjust_time :
+        self.devicemgmt = self.create_devicemgmt_service()
+        if self.adjust_time:
             cdate = self.devicemgmt.GetSystemDateAndTime().UTCDateTime
             cam_date = dt.datetime(cdate.Date.Year, cdate.Date.Month, cdate.Date.Day, cdate.Time.Hour, cdate.Time.Minute, cdate.Time.Second)
             self.dt_diff = cam_date - dt.datetime.utcnow()
             self.devicemgmt.dt_diff = self.dt_diff
             self.devicemgmt.set_wsse()
         # Get XAddr of services on the device
-        self.xaddrs = { }
+        self.xaddrs = {}
         capabilities = self.devicemgmt.GetCapabilities({'Category': 'All'})
         for name, capability in capabilities:
             try:
@@ -287,8 +294,7 @@ class ONVIFCamera(object):
                 self.event = self.create_events_service()
                 self.xaddrs['http://www.onvif.org/ver10/events/wsdl/PullPointSubscription'] = self.event.CreatePullPointSubscription().SubscriptionReference.Address
             except:
-                pass                
-
+                pass
 
     def update_url(self, host=None, port=None):
         changed = False
